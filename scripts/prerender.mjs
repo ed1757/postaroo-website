@@ -14,7 +14,7 @@ function startPreviewServer() {
   return new Promise((resolve, reject) => {
     const server = spawn(
       'npx',
-      ['vite', 'preview', '--port', String(PORT), '--strictPort'],
+      ['vite', 'preview', '--port', String(PORT), '--strictPort', '--open', 'false'],
       {
         cwd: path.resolve(process.cwd()),
         env: { ...process.env },
