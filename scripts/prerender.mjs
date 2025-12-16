@@ -7,6 +7,8 @@ import { routeMeta } from '../src/routes-data.js';
 const PORT = 4173;
 const ROUTES = routeMeta.map((meta) => meta.path);
 const OUT_DIR = path.resolve(process.cwd(), 'build');
+const PREVIEW_TIMEOUT_MS = 30000;
+const ROUTE_TIMEOUT_MS = 30000;
 
 function startPreviewServer() {
   return new Promise((resolve, reject) => {
@@ -40,6 +42,7 @@ function startPreviewServer() {
 async function fetchRoute(route, browser) {
   const url = `http://127.0.0.1:${PORT}${route}`;
   const page = await browser.newPage();
+  page.setDefaultNavigationTimeout(ROUTE_TIMEOUT_MS);
   await page.goto(url, { waitUntil: 'networkidle0' });
   const html = await page.content();
   await page.close();
@@ -58,8 +61,17 @@ async function writeRoute(route, html) {
 }
 
 async function main() {
-  const server = await startPreviewServer();
-  const browser = await puppeteer.launch();
+  console.log('Starting Vite preview server...');
+  const server = await Promise.race([
+    startPreviewServer(),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Preview server timeout')), PREVIEW_TIMEOUT_MS),
+    ),
+  ]);
+  console.log('Launching headless Chromium...');
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
   try {
     for (const route of ROUTES) {
       console.log(`Prerendering ${route}`);
