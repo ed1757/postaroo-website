@@ -10,7 +10,7 @@ export function Footer({ onNavigate }: FooterProps) {
   const handleNavigate = (page: Page) => {
     onNavigate(page);
     window.scrollTo(0, 0);
-  };
+  }; 
 
   return (
     <footer className="border-t border-gray-200">
